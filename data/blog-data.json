@@ -1,0 +1,32 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Understanding Ransomware Attacks: A Technical Deep Dive",
+      "author": "SecurityExpert",
+      "date": "2026-05-25T08:00:00Z",
+      "tags": ["malware", "ransomware", "security"],
+      "content": "Ransomware has become one of the most dangerous cyber threats facing organizations today. In this article, we'll explore the technical mechanics of ransomware attacks, including encryption techniques, payload delivery methods, and defense strategies.\n\n## What is Ransomware?\n\nRansomware is malicious software designed to encrypt or lock access to a victim's files or systems, rendering them inaccessible until a ransom is paid.\n\n## Common Vectors\n\n1. Phishing emails with malicious attachments\n2. Exploit kits targeting unpatched vulnerabilities\n3. Compromised credentials\n4. Supply chain attacks\n\n## Detection and Prevention\n\n- Implement EDR solutions\n- Keep systems patched\n- Regular backups\n- Network segmentation",
+      "comments": 4
+    },
+    {
+      "id": 2,
+      "title": "Ethical Penetration Testing: Tools and Best Practices",
+      "author": "PenTestMentor",
+      "date": "2026-05-24T10:30:00Z",
+      "tags": ["penetration-testing", "security", "ethics"],
+      "content": "Penetration testing is a critical component of a comprehensive security program. This guide covers the essential tools, methodologies, and ethical considerations.\n\n## Essential Tools\n\n- Nmap: Network scanning and reconnaissance\n- Burp Suite: Web application testing\n- Metasploit: Exploitation framework\n- Wireshark: Network packet analysis\n\n## Testing Methodology\n\n1. Reconnaissance\n2. Scanning\n3. Enumeration\n4. Exploitation\n5. Reporting\n\n## Ethical Considerations\n\nAlways obtain written authorization before conducting any penetration testing activities.",
+      "comments": 7
+    },
+    {
+      "id": 3,
+      "title": "Zero-Day Vulnerabilities: What You Need to Know",
+      "author": "VulnResearcher",
+      "date": "2026-05-23T14:45:00Z",
+      "tags": ["vulnerability", "security", "defense"],
+      "content": "Zero-day vulnerabilities are security flaws that are unknown to the software vendor and have not been publicly disclosed. This makes them particularly dangerous.\n\n## Impact of Zero-Days\n\nZero-day exploits can:
+- Bypass existing security controls\n- Provide immediate compromise\n- Affect multiple organizations simultaneously\n\n## Response Strategies\n\n1. Monitor for suspicious activities\n2. Implement network segmentation\n3. Use vulnerability scanning tools\n4. Stay informed through threat intelligence feeds",
+      "comments": 2
+    }
+  ]
+}

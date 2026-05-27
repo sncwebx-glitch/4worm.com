@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>4worm.com - Security Blog</title>
+    <link>https://4worm.com/blog.html</link>
+    <description>In-depth articles on security updates, penetration testing, and vulnerability research</description>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 26 May 2026 12:00:00 GMT</lastBuildDate>
+    <item>
+      <title>Understanding Ransomware Attacks: A Technical Deep Dive</title>
+      <link>https://4worm.com/blog.html</link>
+      <author>SecurityExpert</author>
+      <pubDate>Mon, 25 May 2026 08:00:00 GMT</pubDate>
+      <description>Explore the technical mechanics of ransomware attacks, including encryption techniques, payload delivery methods, and defense strategies.</description>
+      <category>Malware</category>
+      <content:encoded><![CDATA[Ransomware has become one of the most dangerous cyber threats facing organizations today. In this article, we'll explore the technical mechanics of ransomware attacks, including encryption techniques, payload delivery methods, and defense strategies.]]></content:encoded>
+    </item>
+    <item>
+      <title>Ethical Penetration Testing: Tools and Best Practices</title>
+      <link>https://4worm.com/blog.html</link>
+      <author>PenTestMentor</author>
+      <pubDate>Sun, 24 May 2026 10:30:00 GMT</pubDate>
+      <description>A comprehensive guide covering essential penetration testing tools, methodologies, and ethical considerations.</description>
+      <category>Penetration Testing</category>
+      <content:encoded><![CDATA[Penetration testing is a critical component of a comprehensive security program. This guide covers the essential tools, methodologies, and ethical considerations.]]></content:encoded>
+    </item>
+    <item>
+      <title>Zero-Day Vulnerabilities: What You Need to Know</title>
+      <link>https://4worm.com/blog.html</link>
+      <author>VulnResearcher</author>
+      <pubDate>Sat, 23 May 2026 14:45:00 GMT</pubDate>
+      <description>Learn about zero-day vulnerabilities, their impact, and strategies for response and defense.</description>
+      <category>Vulnerability</category>
+      <content:encoded><![CDATA[Zero-day vulnerabilities are security flaws that are unknown to the software vendor and have not been publicly disclosed. This makes them particularly dangerous.]]></content:encoded>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,82 @@
+{
+  "categories": [
+    {
+      "id": 0,
+      "name": "Security Updates",
+      "emoji": "🚨",
+      "description": "Latest security patches, CVEs, and critical updates"
+    },
+    {
+      "id": 1,
+      "name": "Pen Testing",
+      "emoji": "🔍",
+      "description": "White hat penetration testing techniques and discussions"
+    },
+    {
+      "id": 2,
+      "name": "Bug Reports",
+      "emoji": "🐛",
+      "description": "Responsible vulnerability disclosure"
+    },
+    {
+      "id": 3,
+      "name": "Defense Strategies",
+      "emoji": "🛡️",
+      "description": "Security hardening and defense mechanisms"
+    },
+    {
+      "id": 4,
+      "name": "Resources",
+      "emoji": "📚",
+      "description": "Tools, guides, and learning materials"
+    }
+  ],
+  "threads": [
+    {
+      "id": 1,
+      "categoryId": 0,
+      "title": "Critical Security Patch Released for Apache Log4j",
+      "author": "SecurityTeam",
+      "content": "A critical vulnerability has been discovered in Apache Log4j (CVE-2021-44228). All users are advised to update immediately. This affects versions 2.0-beta9 through 2.15.0.",
+      "timestamp": "2026-05-25T10:30:00Z",
+      "replies": 5,
+      "views": 234,
+      "replies_data": [
+        {
+          "id": 1,
+          "author": "WhiteHat42",
+          "content": "We've already patched all our systems. Recommended for everyone to do the same ASAP.",
+          "timestamp": "2026-05-25T11:00:00Z"
+        },
+        {
+          "id": 2,
+          "author": "DevSecOps",
+          "content": "What's the recommended update path for users on 2.12.x?",
+          "timestamp": "2026-05-25T11:45:00Z"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "categoryId": 1,
+      "title": "OWASP Top 10 2021 - What Changed?",
+      "author": "PenTestPro",
+      "content": "Let's discuss the changes in OWASP Top 10 2021 compared to 2017. Notable shifts include the focus on insecure deserialization.",
+      "timestamp": "2026-05-24T14:20:00Z",
+      "replies": 3,
+      "views": 156,
+      "replies_data": []
+    },
+    {
+      "id": 3,
+      "categoryId": 2,
+      "title": "XSS Vulnerability in User Profile Page",
+      "author": "BugHunter01",
+      "content": "Found a reflected XSS vulnerability in the user profile update functionality. The vulnerability allows arbitrary JavaScript execution.",
+      "timestamp": "2026-05-23T09:15:00Z",
+      "replies": 2,
+      "views": 89,
+      "replies_data": []
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4worm.com - Security Forum & Pen Testing Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="alternate" type="application/rss+xml" title="Forum Updates" href="rss/forum-feed.xml">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>🔒 4worm.com</h1>
+            <p class="tagline">Security Updates | White Hat Pen Testing | Vulnerability Disclosure</p>
+            <nav class="main-nav">
+                <a href="index.html" class="active">Forum</a>
+                <a href="blog.html">Blog</a>
+                <a href="#rss">RSS Feeds</a>
+                <a href="#login">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <aside class="sidebar">
+            <section class="categories">
+                <h3>Forum Categories</h3>
+                <ul id="categories-list">
+                    <li><a href="#cat-0" data-category="0">🚨 Security Updates</a></li>
+                    <li><a href="#cat-1" data-category="1">🔍 Pen Testing</a></li>
+                    <li><a href="#cat-2" data-category="2">🐛 Bug Reports</a></li>
+                    <li><a href="#cat-3" data-category="3">🛡️ Defense Strategies</a></li>
+                    <li><a href="#cat-4" data-category="4">📚 Resources</a></li>
+                </ul>
+            </section>
+
+            <section class="rss-feeds">
+                <h3>Subscribe</h3>
+                <ul>
+                    <li><a href="rss/forum-feed.xml" target="_blank">📡 Forum RSS</a></li>
+                    <li><a href="rss/blog-feed.xml" target="_blank">📡 Blog RSS</a></li>
+                </ul>
+            </section>
+        </aside>
+
+        <section class="forum-container">
+            <div class="forum-header">
+                <h2 id="category-title">Security Updates</h2>
+                <button class="btn-primary" onclick="openNewThreadModal()">+ New Thread</button>
+            </div>
+
+            <div id="threads-container" class="threads-list">
+                <!-- Threads will be populated by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <!-- New Thread Modal -->
+    <div id="newThreadModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeNewThreadModal()">&times;</span>
+            <h2>Create New Thread</h2>
+            <form id="newThreadForm">
+                <input type="text" id="threadTitle" placeholder="Thread Title" required>
+                <textarea id="threadContent" placeholder="Thread Content" rows="6" required></textarea>
+                <input type="text" id="threadAuthor" placeholder="Your Name" required>
+                <button type="submit" class="btn-primary">Post Thread</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Thread Detail Modal -->
+    <div id="threadDetailModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeThreadDetail()">&times;</span>
+            <div id="threadDetail"></div>
+            <form id="newReplyForm" style="margin-top: 20px;">
+                <textarea placeholder="Write your reply..." id="replyContent" rows="4" required></textarea>
+                <input type="text" id="replyAuthor" placeholder="Your Name" required>
+                <button type="submit" class="btn-primary">Post Reply</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 4worm.com - All Rights Reserved | <a href="docs/SECURITY.md">Security Policy</a></p>
+    </footer>
+
+    <script src="js/forum.js"></script>
+</body>
+</html>

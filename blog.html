@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4worm.com Blog - Security Articles</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="alternate" type="application/rss+xml" title="Blog Updates" href="rss/blog-feed.xml">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>🔒 4worm.com</h1>
+            <p class="tagline">Security Updates | White Hat Pen Testing | Vulnerability Disclosure</p>
+            <nav class="main-nav">
+                <a href="index.html">Forum</a>
+                <a href="blog.html" class="active">Blog</a>
+                <a href="#rss">RSS Feeds</a>
+                <a href="#login">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <aside class="sidebar">
+            <section class="blog-filters">
+                <h3>Filter by Tag</h3>
+                <ul id="tags-list">
+                    <li><a href="#" onclick="filterByTag('security')">Security</a></li>
+                    <li><a href="#" onclick="filterByTag('penetration-testing')">Pen Testing</a></li>
+                    <li><a href="#" onclick="filterByTag('vulnerability')">Vulnerabilities</a></li>
+                    <li><a href="#" onclick="filterByTag('malware')">Malware</a></li>
+                    <li><a href="#" onclick="filterByTag('defense')">Defense</a></li>
+                </ul>
+            </section>
+
+            <section class="rss-feeds">
+                <h3>Subscribe</h3>
+                <ul>
+                    <li><a href="rss/blog-feed.xml" target="_blank">📡 Blog RSS</a></li>
+                    <li><a href="rss/forum-feed.xml" target="_blank">📡 Forum RSS</a></li>
+                </ul>
+            </section>
+        </aside>
+
+        <section class="blog-container">
+            <div class="blog-header">
+                <h2>Security Blog</h2>
+                <button class="btn-primary" onclick="openNewArticleModal()">+ New Article</button>
+            </div>
+
+            <div id="articles-container" class="articles-list">
+                <!-- Articles will be populated by JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <!-- New Article Modal -->
+    <div id="newArticleModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeNewArticleModal()">&times;</span>
+            <h2>Write New Article</h2>
+            <form id="newArticleForm">
+                <input type="text" id="articleTitle" placeholder="Article Title" required>
+                <input type="text" id="articleAuthor" placeholder="Author Name" required>
+                <input type="text" id="articleTags" placeholder="Tags (comma separated)" required>
+                <textarea id="articleContent" placeholder="Article Content (Markdown supported)" rows="10" required></textarea>
+                <button type="submit" class="btn-primary">Publish Article</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Article Detail Modal -->
+    <div id="articleDetailModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeArticleDetail()">&times;</span>
+            <div id="articleDetail"></div>
+            <section class="comments-section" style="margin-top: 30px;">
+                <h3>Comments</h3>
+                <div id="commentsContainer"></div>
+                <form id="newCommentForm" style="margin-top: 20px;">
+                    <textarea placeholder="Add a comment..." id="commentContent" rows="3" required></textarea>
+                    <input type="text" id="commentAuthor" placeholder="Your Name" required>
+                    <button type="submit" class="btn-primary">Post Comment</button>
+                </form>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 4worm.com - All Rights Reserved | <a href="docs/SECURITY.md">Security Policy</a></p>
+    </footer>
+
+    <script src="js/blog.js"></script>
+</body>
+</html>
