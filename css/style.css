@@ -304,6 +304,11 @@ main {
     background: rgba(0, 212, 255, 0.15);
 }
 
+.locked-message {
+    color: #ffe082;
+    font-weight: 600;
+}
+
 /* Modal Styles */
 .modal {
     position: fixed;

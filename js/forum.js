@@ -162,13 +162,17 @@ function viewThread(threadId) {
     if (currentThread.replies_data && currentThread.replies_data.length > 0) {
         repliesHtml += '<h4>Replies:</h4>';
         currentThread.replies_data.forEach(reply => {
+            const rawAuthor = String(reply.author || '');
+            const rawContent = String(reply.content || '');
             const safeAuthor = escapeHtml(reply.author);
             const safeContent = escapeHtml(reply.content);
+            const encodedAuthor = encodeURIComponent(rawAuthor);
+            const encodedContent = encodeURIComponent(rawContent);
             repliesHtml += `
                 <div style="background: rgba(0, 212, 255, 0.05); padding: 15px; margin: 10px 0; border-left: 3px solid #e94560; border-radius: 4px;">
                     <strong style="color: #00d4ff;">${safeAuthor}</strong> • ${formatDate(reply.timestamp)}
                     <p style="margin-top: 10px;">${safeContent}</p>
-                    <button class="quote-btn" data-author="${safeAuthor}" data-content="${safeContent}">Quote</button>
+                    <button class="quote-btn" data-author="${encodedAuthor}" data-content="${encodedContent}">Quote</button>
                 </div>
             `;
         });
@@ -190,7 +194,7 @@ function viewThread(threadId) {
     `;
 
     if (currentThread.locked) {
-        replyForm.innerHTML = '<p style="color:#ffe082; font-weight:600;">🔒 This thread is locked. New replies are disabled.</p>';
+        replyForm.innerHTML = '<p class="locked-message">🔒 This thread is locked. New replies are disabled.</p>';
     } else {
         replyForm.innerHTML = `
             <textarea placeholder="Write your reply..." id="replyContent" rows="4" required></textarea>
@@ -205,7 +209,10 @@ function viewThread(threadId) {
 
     detailDiv.querySelectorAll('.quote-btn').forEach(button => {
         button.addEventListener('click', function () {
-            quoteReply(this.dataset.author, this.dataset.content);
+            quoteReply(
+                decodeURIComponent(this.dataset.author || ''),
+                decodeURIComponent(this.dataset.content || '')
+            );
         });
     });
 
