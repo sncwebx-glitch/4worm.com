@@ -145,7 +145,9 @@ function displayThreads(categoryId) {
 function quoteReply(author, content) {
     const replyContent = document.getElementById('replyContent');
     if (!replyContent) return;
-    replyContent.value = `> ${author} wrote:\n> ${content.replace(/\n/g, '\n> ')}\n\n`;
+    const safeAuthor = sanitizeQuoteText(author);
+    const safeContent = sanitizeQuoteText(content);
+    replyContent.value = `> ${safeAuthor} wrote:\n> ${safeContent.replace(/\n/g, '\n> ')}\n\n`;
     replyContent.focus();
 }
 
@@ -164,8 +166,8 @@ function viewThread(threadId) {
         currentThread.replies_data.forEach(reply => {
             const rawAuthor = String(reply.author || '');
             const rawContent = String(reply.content || '');
-            const safeAuthor = escapeHtml(reply.author);
-            const safeContent = escapeHtml(reply.content);
+            const safeAuthor = escapeHtml(rawAuthor);
+            const safeContent = escapeHtml(rawContent);
             const encodedAuthor = encodeURIComponent(rawAuthor);
             const encodedContent = encodeURIComponent(rawContent);
             repliesHtml += `
@@ -230,7 +232,12 @@ function addReply() {
     }
 
     const sourceThread = forumData.threads.find(thread => thread.id === currentThread.id);
-    if (!sourceThread || sourceThread.locked) {
+    if (!sourceThread) {
+        alert('Thread no longer exists.');
+        return;
+    }
+
+    if (sourceThread.locked) {
         alert('This thread is locked.');
         return;
     }
@@ -284,8 +291,11 @@ function addNewThread() {
     }
 
     const now = new Date().toISOString();
+    const nextId = forumData.threads.length === 0
+        ? 1
+        : Math.max(...forumData.threads.map(thread => thread.id)) + 1;
     const newThread = {
-        id: Math.max(...forumData.threads.map(t => t.id), 0) + 1,
+        id: nextId,
         categoryId: currentCategory,
         title: title,
         author: author,
@@ -375,4 +385,10 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function sanitizeQuoteText(text) {
+    return String(text || '')
+        .replace(/\r/g, '')
+        .replace(/\u0000/g, '');
 }
