@@ -145,8 +145,8 @@ function displayThreads(categoryId) {
 function quoteReply(author, content) {
     const replyContent = document.getElementById('replyContent');
     if (!replyContent) return;
-    const safeAuthor = sanitizeQuoteText(author);
-    const safeContent = sanitizeQuoteText(content);
+    const safeAuthor = normalizeQuoteText(author);
+    const safeContent = normalizeQuoteText(content);
     replyContent.value = `> ${safeAuthor} wrote:\n> ${safeContent.replace(/\n/g, '\n> ')}\n\n`;
     replyContent.focus();
 }
@@ -163,18 +163,16 @@ function viewThread(threadId) {
     let repliesHtml = '<div style="margin-top: 20px;">';
     if (currentThread.replies_data && currentThread.replies_data.length > 0) {
         repliesHtml += '<h4>Replies:</h4>';
-        currentThread.replies_data.forEach(reply => {
+        currentThread.replies_data.forEach((reply, index) => {
             const rawAuthor = String(reply.author || '');
             const rawContent = String(reply.content || '');
             const safeAuthor = escapeHtml(rawAuthor);
             const safeContent = escapeHtml(rawContent);
-            const encodedAuthor = encodeURIComponent(rawAuthor);
-            const encodedContent = encodeURIComponent(rawContent);
             repliesHtml += `
                 <div style="background: rgba(0, 212, 255, 0.05); padding: 15px; margin: 10px 0; border-left: 3px solid #e94560; border-radius: 4px;">
                     <strong style="color: #00d4ff;">${safeAuthor}</strong> • ${formatDate(reply.timestamp)}
                     <p style="margin-top: 10px;">${safeContent}</p>
-                    <button class="quote-btn" data-author="${encodedAuthor}" data-content="${encodedContent}">Quote</button>
+                    <button class="quote-btn" data-reply-index="${index}">Quote</button>
                 </div>
             `;
         });
@@ -211,10 +209,10 @@ function viewThread(threadId) {
 
     detailDiv.querySelectorAll('.quote-btn').forEach(button => {
         button.addEventListener('click', function () {
-            quoteReply(
-                decodeURIComponent(this.dataset.author || ''),
-                decodeURIComponent(this.dataset.content || '')
-            );
+            const replyIndex = Number(this.dataset.replyIndex);
+            const reply = currentThread?.replies_data?.[replyIndex];
+            if (!reply) return;
+            quoteReply(reply.author, reply.content);
         });
     });
 
@@ -340,10 +338,11 @@ function setupEventListeners() {
     }
 
     if (searchInput) {
-        searchInput.addEventListener('input', function (event) {
+        const debouncedSearch = debounce(function (event) {
             searchQuery = event.target.value.trim();
             displayThreads(currentCategory);
-        });
+        }, 150);
+        searchInput.addEventListener('input', debouncedSearch);
     }
 
     if (sortSelect) {
@@ -387,8 +386,17 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function sanitizeQuoteText(text) {
+function normalizeQuoteText(text) {
     return String(text || '')
         .replace(/\r/g, '')
-        .replace(/\u0000/g, '');
+        .replace(/\u0000/g, '')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
+function debounce(callback, waitMs) {
+    let timeoutId = null;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => callback.apply(this, args), waitMs);
+    };
 }
