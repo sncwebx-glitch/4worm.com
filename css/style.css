@@ -173,6 +173,7 @@ main {
 
 .thread-filters {
     display: grid;
+    /* Keep search field wider than the two dropdown filters. */
     grid-template-columns: 1.5fr 1fr 1fr;
     gap: 12px;
 }

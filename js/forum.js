@@ -6,6 +6,8 @@ let forumData = null;
 let searchQuery = '';
 let sortBy = 'latest';
 let threadType = 'all';
+let nextThreadId = 1;
+const SEARCH_DEBOUNCE_MS = 150;
 
 // Initialize forum on page load
 document.addEventListener('DOMContentLoaded', function () {
@@ -19,6 +21,9 @@ function loadForumData() {
         .then(response => response.json())
         .then(data => {
             forumData = data;
+            nextThreadId = forumData.threads.length === 0
+                ? 1
+                : Math.max(...forumData.threads.map(thread => thread.id)) + 1;
             populateCategories();
             displayThreads(currentCategory);
         })
@@ -206,15 +211,6 @@ function viewThread(threadId) {
         };
     }
 
-    detailDiv.querySelectorAll('.quote-btn').forEach(button => {
-        button.addEventListener('click', function () {
-            const replyIndex = Number(this.dataset.replyIndex);
-            const reply = currentThread?.replies_data?.[replyIndex];
-            if (!reply) return;
-            quoteReply(reply.author, reply.content);
-        });
-    });
-
     modal.style.display = 'block';
 }
 
@@ -288,11 +284,8 @@ function addNewThread() {
     }
 
     const now = new Date().toISOString();
-    const nextId = forumData.threads.length === 0
-        ? 1
-        : Math.max(...forumData.threads.map(thread => thread.id)) + 1;
     const newThread = {
-        id: nextId,
+        id: nextThreadId++,
         categoryId: currentCategory,
         title: title,
         author: author,
@@ -340,8 +333,19 @@ function setupEventListeners() {
         const debouncedSearch = debounce(function (event) {
             searchQuery = event.target.value.trim();
             displayThreads(currentCategory);
-        }, 150);
+        }, SEARCH_DEBOUNCE_MS);
         searchInput.addEventListener('input', debouncedSearch);
+    }
+
+    const threadDetail = document.getElementById('threadDetail');
+    if (threadDetail) {
+        threadDetail.addEventListener('click', function (event) {
+            if (!event.target.classList.contains('quote-btn')) return;
+            const replyIndex = Number(event.target.dataset.replyIndex);
+            const reply = currentThread?.replies_data?.[replyIndex];
+            if (!reply) return;
+            quoteReply(reply.author, reply.content);
+        });
     }
 
     if (sortSelect) {
@@ -386,6 +390,7 @@ function escapeHtml(text) {
 }
 
 function normalizeQuoteText(text) {
+    // Normalize stored reply text so quoted content remains readable and stable.
     return String(text || '')
         .replace(/\r/g, '')
         .replace(/\u0000/g, '')
@@ -407,7 +412,8 @@ function matchesSearchQuery(thread, query) {
 function debounce(callback, waitMs) {
     let timeoutId = null;
     return function (...args) {
+        const context = this;
         clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => callback.apply(this, args), waitMs);
+        timeoutId = setTimeout(() => callback.apply(context, args), waitMs);
     };
 }
