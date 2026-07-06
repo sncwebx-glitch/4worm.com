@@ -3,12 +3,16 @@
 let currentCategory = 0;
 let currentThread = null;
 let forumData = null;
+let searchQuery = '';
+let sortBy = 'latest';
+let threadType = 'all';
+let nextThreadId = 1;
+const SEARCH_DEBOUNCE_MS = 150;
 
 // Initialize forum on page load
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     loadForumData();
     setupEventListeners();
-    displayThreads(0);
 });
 
 // Load forum data
@@ -17,7 +21,11 @@ function loadForumData() {
         .then(response => response.json())
         .then(data => {
             forumData = data;
+            nextThreadId = forumData.threads.length === 0
+                ? 1
+                : Math.max(...forumData.threads.map(thread => thread.id)) + 1;
             populateCategories();
+            displayThreads(currentCategory);
         })
         .catch(error => console.error('Error loading forum data:', error));
 }
@@ -26,7 +34,7 @@ function loadForumData() {
 function populateCategories() {
     const categoriesList = document.getElementById('categories-list');
     categoriesList.innerHTML = '';
-    
+
     forumData.categories.forEach(category => {
         const li = document.createElement('li');
         li.innerHTML = `<a href="#cat-${category.id}" data-category="${category.id}" onclick="selectCategory(${category.id})">${category.emoji} ${category.name}</a>`;
@@ -40,56 +48,135 @@ function selectCategory(categoryId) {
     displayThreads(categoryId);
 }
 
+function normalizeThread(thread) {
+    return {
+        ...thread,
+        pinned: !!thread.pinned,
+        locked: !!thread.locked,
+        flair: thread.flair || 'discussion',
+        upvotes: Number(thread.upvotes || 0),
+        downvotes: Number(thread.downvotes || 0),
+        lastActivity: thread.lastActivity || thread.timestamp
+    };
+}
+
+function threadScore(thread) {
+    return Number(thread.upvotes || 0) - Number(thread.downvotes || 0);
+}
+
+function getFilteredThreads(categoryId) {
+    return forumData.threads
+        .map(normalizeThread)
+        .filter(thread => thread.categoryId === categoryId)
+        .filter(thread => {
+            if (threadType === 'pinned') return thread.pinned;
+            if (threadType === 'open') return !thread.locked;
+            return true;
+        })
+        .filter(thread => {
+            if (!searchQuery) return true;
+            return matchesSearchQuery(thread, searchQuery);
+        })
+        .sort((a, b) => {
+            if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+            if (sortBy === 'popular') return Number(b.views || 0) - Number(a.views || 0);
+            if (sortBy === 'score') return threadScore(b) - threadScore(a);
+            return new Date(b.lastActivity || b.timestamp) - new Date(a.lastActivity || a.timestamp);
+        });
+}
+
+function updateBoardStats(threads) {
+    const statsNode = document.getElementById('board-stats');
+    const totalReplies = threads.reduce((sum, thread) => sum + Number(thread.replies || 0), 0);
+    const lockedCount = threads.filter(thread => thread.locked).length;
+    const pinnedCount = threads.filter(thread => thread.pinned).length;
+    statsNode.innerHTML = `
+        <span>${threads.length} threads</span>
+        <span>${totalReplies} replies</span>
+        <span>${pinnedCount} pinned</span>
+        <span>${lockedCount} locked</span>
+    `;
+}
+
+function threadBadgesHtml(thread) {
+    const badges = [`<span class="thread-badge flair">${escapeHtml(thread.flair)}</span>`];
+    if (thread.pinned) badges.push('<span class="thread-badge pinned">Pinned</span>');
+    if (thread.locked) badges.push('<span class="thread-badge locked">Locked</span>');
+    return badges.join('');
+}
+
 // Display threads for category
 function displayThreads(categoryId) {
+    if (!forumData) return;
+
     const category = forumData.categories.find(c => c.id === categoryId);
-    document.getElementById('category-title').textContent = category.name;
-    
+    document.getElementById('category-title').textContent = category ? category.name : 'Forum';
+
     const threadsContainer = document.getElementById('threads-container');
     threadsContainer.innerHTML = '';
-    
-    const categoryThreads = forumData.threads.filter(t => t.categoryId === categoryId);
-    
+
+    const categoryThreads = getFilteredThreads(categoryId);
+    updateBoardStats(categoryThreads);
+
     if (categoryThreads.length === 0) {
-        threadsContainer.innerHTML = '<p style="text-align: center; color: #999;">No threads yet. Be the first to post!</p>';
+        threadsContainer.innerHTML = '<p style="text-align: center; color: #999;">No matching threads yet.</p>';
         return;
     }
-    
+
     categoryThreads.forEach(thread => {
         const threadCard = document.createElement('div');
         threadCard.className = 'thread-card';
         threadCard.onclick = () => viewThread(thread.id);
-        
+
         const preview = thread.content.substring(0, 150) + (thread.content.length > 150 ? '...' : '');
-        
+
         threadCard.innerHTML = `
+            <div class="thread-topline">${threadBadgesHtml(thread)}</div>
             <h3>${escapeHtml(thread.title)}</h3>
-            <div class="thread-meta">by <strong>${escapeHtml(thread.author)}</strong> • ${formatDate(thread.timestamp)}</div>
+            <div class="thread-meta">by <strong>${escapeHtml(thread.author)}</strong> • ${formatDate(thread.timestamp)} • last active ${formatDate(thread.lastActivity)}</div>
             <p class="thread-preview">${escapeHtml(preview)}</p>
             <div class="thread-stats">
                 <span>💬 ${thread.replies} replies</span>
                 <span>👁️ ${thread.views} views</span>
+                <span>⬆️ ${threadScore(thread)} score</span>
             </div>
         `;
-        
+
         threadsContainer.appendChild(threadCard);
     });
 }
 
+function quoteReply(author, content) {
+    const replyContent = document.getElementById('replyContent');
+    if (!replyContent) return;
+    const safeAuthor = normalizeQuoteText(author);
+    const safeContent = normalizeQuoteText(content);
+    replyContent.value = formatQuoteReply(safeAuthor, safeContent);
+    replyContent.focus();
+}
+
 // View thread details
 function viewThread(threadId) {
-    currentThread = forumData.threads.find(t => t.id === threadId);
+    currentThread = forumData.threads.map(normalizeThread).find(t => t.id === threadId);
     const modal = document.getElementById('threadDetailModal');
     const detailDiv = document.getElementById('threadDetail');
-    
+    const replyForm = document.getElementById('newReplyForm');
+
+    if (!currentThread) return;
+
     let repliesHtml = '<div style="margin-top: 20px;">';
     if (currentThread.replies_data && currentThread.replies_data.length > 0) {
         repliesHtml += '<h4>Replies:</h4>';
-        currentThread.replies_data.forEach(reply => {
+        currentThread.replies_data.forEach((reply, index) => {
+            const rawAuthor = String(reply.author || '');
+            const rawContent = String(reply.content || '');
+            const safeAuthor = escapeHtml(rawAuthor);
+            const safeContent = escapeHtml(rawContent);
             repliesHtml += `
                 <div style="background: rgba(0, 212, 255, 0.05); padding: 15px; margin: 10px 0; border-left: 3px solid #e94560; border-radius: 4px;">
-                    <strong style="color: #00d4ff;">${escapeHtml(reply.author)}</strong> • ${formatDate(reply.timestamp)}
-                    <p style="margin-top: 10px;">${escapeHtml(reply.content)}</p>
+                    <strong style="color: #00d4ff;">${safeAuthor}</strong> • ${formatDate(reply.timestamp)}
+                    <p style="margin-top: 10px;">${safeContent}</p>
+                    <button class="quote-btn" data-reply-index="${index}">Quote</button>
                 </div>
             `;
         });
@@ -97,8 +184,9 @@ function viewThread(threadId) {
         repliesHtml += '<p style="color: #999;">No replies yet.</p>';
     }
     repliesHtml += '</div>';
-    
+
     detailDiv.innerHTML = `
+        <div class="thread-topline">${threadBadgesHtml(currentThread)}</div>
         <h3 style="color: #00d4ff;">${escapeHtml(currentThread.title)}</h3>
         <div style="color: #999; margin-bottom: 15px;">
             by <strong>${escapeHtml(currentThread.author)}</strong> • ${formatDate(currentThread.timestamp)}
@@ -108,12 +196,21 @@ function viewThread(threadId) {
         </div>
         ${repliesHtml}
     `;
-    
-    document.getElementById('newReplyForm').onsubmit = function(e) {
-        e.preventDefault();
-        addReply();
-    };
-    
+
+    if (currentThread.locked) {
+        replyForm.innerHTML = '<p class="locked-message">🔒 This thread is locked. New replies are disabled.</p>';
+    } else {
+        replyForm.innerHTML = `
+            <textarea placeholder="Write your reply..." id="replyContent" rows="4" required></textarea>
+            <input type="text" id="replyAuthor" placeholder="Your Name" required>
+            <button type="submit" class="btn-primary">Post Reply</button>
+        `;
+        replyForm.onsubmit = function (e) {
+            e.preventDefault();
+            addReply();
+        };
+    }
+
     modal.style.display = 'block';
 }
 
@@ -121,32 +218,45 @@ function viewThread(threadId) {
 function addReply() {
     const content = document.getElementById('replyContent').value;
     const author = document.getElementById('replyAuthor').value;
-    
+
     if (!content || !author) {
         alert('Please fill in all fields');
         return;
     }
-    
+
+    const sourceThread = forumData.threads.find(thread => thread.id === currentThread.id);
+    if (!sourceThread) {
+        alert('Thread no longer exists.');
+        return;
+    }
+
+    if (sourceThread.locked) {
+        alert('This thread is locked.');
+        return;
+    }
+
     const newReply = {
-        id: (currentThread.replies_data?.length || 0) + 1,
+        id: (sourceThread.replies_data?.length || 0) + 1,
         author: author,
         content: content,
         timestamp: new Date().toISOString()
     };
-    
-    if (!currentThread.replies_data) {
-        currentThread.replies_data = [];
+
+    if (!sourceThread.replies_data) {
+        sourceThread.replies_data = [];
     }
-    currentThread.replies_data.push(newReply);
-    currentThread.replies++;
-    
+    sourceThread.replies_data.push(newReply);
+    sourceThread.replies = Number(sourceThread.replies || 0) + 1;
+    sourceThread.lastActivity = newReply.timestamp;
+
     // Refresh thread view
-    viewThread(currentThread.id);
-    
+    viewThread(sourceThread.id);
+    displayThreads(currentCategory);
+
     // Clear form
     document.getElementById('replyContent').value = '';
     document.getElementById('replyAuthor').value = '';
-    
+
     alert('Reply posted successfully!');
 }
 
@@ -163,59 +273,100 @@ function closeThreadDetail() {
     document.getElementById('threadDetailModal').style.display = 'none';
 }
 
-// Form submission
-document.addEventListener('DOMContentLoaded', function() {
-    const newThreadForm = document.getElementById('newThreadForm');
-    if (newThreadForm) {
-        newThreadForm.onsubmit = function(e) {
-            e.preventDefault();
-            addNewThread();
-        };
-    }
-});
-
 function addNewThread() {
     const title = document.getElementById('threadTitle').value;
     const content = document.getElementById('threadContent').value;
     const author = document.getElementById('threadAuthor').value;
-    
+
     if (!title || !content || !author) {
         alert('Please fill in all fields');
         return;
     }
-    
+
+    const now = new Date().toISOString();
     const newThread = {
-        id: Math.max(...forumData.threads.map(t => t.id)) + 1,
+        id: nextThreadId++,
         categoryId: currentCategory,
         title: title,
         author: author,
         content: content,
-        timestamp: new Date().toISOString(),
+        timestamp: now,
+        lastActivity: now,
         replies: 0,
         views: 0,
+        flair: 'discussion',
+        pinned: false,
+        locked: false,
+        upvotes: 1,
+        downvotes: 0,
         replies_data: []
     };
-    
+
     forumData.threads.push(newThread);
-    
+
     closeNewThreadModal();
     displayThreads(currentCategory);
-    
+
     // Clear form
     document.getElementById('threadTitle').value = '';
     document.getElementById('threadContent').value = '';
     document.getElementById('threadAuthor').value = '';
-    
+
     alert('Thread created successfully!');
 }
 
 // Setup event listeners
 function setupEventListeners() {
+    const newThreadForm = document.getElementById('newThreadForm');
+    const searchInput = document.getElementById('threadSearch');
+    const sortSelect = document.getElementById('threadSort');
+    const typeSelect = document.getElementById('threadType');
+
+    if (newThreadForm) {
+        newThreadForm.onsubmit = function (e) {
+            e.preventDefault();
+            addNewThread();
+        };
+    }
+
+    if (searchInput) {
+        const debouncedSearch = debounce(function (event) {
+            searchQuery = event.target.value.trim();
+            displayThreads(currentCategory);
+        }, SEARCH_DEBOUNCE_MS);
+        searchInput.addEventListener('input', debouncedSearch);
+    }
+
+    const threadDetail = document.getElementById('threadDetail');
+    if (threadDetail) {
+        threadDetail.addEventListener('click', function (event) {
+            if (!event.target.classList.contains('quote-btn')) return;
+            const replyIndex = Number(event.target.dataset.replyIndex);
+            const reply = currentThread?.replies_data?.[replyIndex];
+            if (!reply) return;
+            quoteReply(reply.author, reply.content);
+        });
+    }
+
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function (event) {
+            sortBy = event.target.value;
+            displayThreads(currentCategory);
+        });
+    }
+
+    if (typeSelect) {
+        typeSelect.addEventListener('change', function (event) {
+            threadType = event.target.value;
+            displayThreads(currentCategory);
+        });
+    }
+
     // Close modals when clicking outside
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         const newThreadModal = document.getElementById('newThreadModal');
         const threadDetailModal = document.getElementById('threadDetailModal');
-        
+
         if (event.target === newThreadModal) {
             newThreadModal.style.display = 'none';
         }
@@ -227,6 +378,7 @@ function setupEventListeners() {
 
 // Utility functions
 function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
 }
@@ -235,4 +387,33 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function normalizeQuoteText(text) {
+    // Normalize stored reply text so quoted content remains readable and stable.
+    return String(text || '')
+        .replace(/\r/g, '')
+        .replace(/\u0000/g, '')
+        .replace(/\n{3,}/g, '\n\n');
+}
+
+function formatQuoteReply(author, content) {
+    return `> ${author} wrote:\n> ${content.replace(/\n/g, '\n> ')}\n\n`;
+}
+
+function matchesSearchQuery(thread, query) {
+    const lowerQuery = String(query || '').toLowerCase();
+    const title = String(thread.title || '').toLowerCase();
+    const content = String(thread.content || '').toLowerCase();
+    const author = String(thread.author || '').toLowerCase();
+    return title.includes(lowerQuery) || content.includes(lowerQuery) || author.includes(lowerQuery);
+}
+
+function debounce(callback, waitMs) {
+    let timeoutId = null;
+    return function (...args) {
+        const context = this;
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => callback.apply(context, args), waitMs);
+    };
 }

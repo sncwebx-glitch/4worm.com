@@ -149,6 +149,43 @@ main {
     font-size: 1.8em;
 }
 
+.forum-controls {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.board-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 0.85em;
+    color: #9bc8d8;
+}
+
+.board-stats span {
+    background: rgba(0, 212, 255, 0.1);
+    border: 1px solid rgba(0, 212, 255, 0.25);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.thread-filters {
+    display: grid;
+    /* Keep search field wider than the two dropdown filters. */
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 12px;
+}
+
+.thread-filters select {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #00d4ff;
+    color: #ecf0f1;
+    border-radius: 5px;
+    padding: 10px 12px;
+}
+
 /* Buttons */
 .btn-primary {
     background: linear-gradient(135deg, #e94560 0%, #c72a4c 100%);
@@ -195,6 +232,41 @@ main {
     font-size: 1.3em;
 }
 
+.thread-topline {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.thread-badge {
+    font-size: 0.75em;
+    border-radius: 999px;
+    padding: 3px 8px;
+    border: 1px solid transparent;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.thread-badge.flair {
+    border-color: #00d4ff;
+    color: #7fddff;
+    background: rgba(0, 212, 255, 0.1);
+}
+
+.thread-badge.pinned {
+    border-color: #e94560;
+    color: #ff8ea3;
+    background: rgba(233, 69, 96, 0.12);
+}
+
+.thread-badge.locked {
+    border-color: #f1c40f;
+    color: #ffe082;
+    background: rgba(241, 196, 15, 0.12);
+}
+
 .thread-meta,
 .article-meta {
     font-size: 0.85em;
@@ -216,6 +288,26 @@ main {
     color: #aaa;
     padding-top: 10px;
     border-top: 1px solid #00d4ff;
+}
+
+.quote-btn {
+    margin-top: 8px;
+    font-size: 0.8em;
+    background: transparent;
+    color: #00d4ff;
+    border: 1px solid #00d4ff;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.quote-btn:hover {
+    background: rgba(0, 212, 255, 0.15);
+}
+
+.locked-message {
+    color: #ffe082;
+    font-weight: 600;
 }
 
 /* Modal Styles */
@@ -325,6 +417,10 @@ footer a:hover {
         flex-direction: column;
         gap: 15px;
         align-items: flex-start;
+    }
+
+    .thread-filters {
+        grid-template-columns: 1fr;
     }
 
     .modal-content {
