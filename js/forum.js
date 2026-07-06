@@ -70,8 +70,7 @@ function getFilteredThreads(categoryId) {
         })
         .filter(thread => {
             if (!searchQuery) return true;
-            const q = searchQuery.toLowerCase();
-            return thread.title.toLowerCase().includes(q) || thread.content.toLowerCase().includes(q) || thread.author.toLowerCase().includes(q);
+            return matchesSearchQuery(thread, searchQuery);
         })
         .sort((a, b) => {
             if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -147,7 +146,7 @@ function quoteReply(author, content) {
     if (!replyContent) return;
     const safeAuthor = normalizeQuoteText(author);
     const safeContent = normalizeQuoteText(content);
-    replyContent.value = `> ${safeAuthor} wrote:\n> ${safeContent.replace(/\n/g, '\n> ')}\n\n`;
+    replyContent.value = formatQuoteReply(safeAuthor, safeContent);
     replyContent.focus();
 }
 
@@ -391,6 +390,18 @@ function normalizeQuoteText(text) {
         .replace(/\r/g, '')
         .replace(/\u0000/g, '')
         .replace(/\n{3,}/g, '\n\n');
+}
+
+function formatQuoteReply(author, content) {
+    return `> ${author} wrote:\n> ${content.replace(/\n/g, '\n> ')}\n\n`;
+}
+
+function matchesSearchQuery(thread, query) {
+    const lowerQuery = String(query || '').toLowerCase();
+    const title = String(thread.title || '').toLowerCase();
+    const content = String(thread.content || '').toLowerCase();
+    const author = String(thread.author || '').toLowerCase();
+    return title.includes(lowerQuery) || content.includes(lowerQuery) || author.includes(lowerQuery);
 }
 
 function debounce(callback, waitMs) {
