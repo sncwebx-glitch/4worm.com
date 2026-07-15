@@ -12,6 +12,7 @@ const listingRoutes = require('./routes/listings');
 const userRoutes = require('./routes/users');
 const paymentRoutes = require('./routes/payments');
 const chatRoutes = require('./routes/chat');
+const gameRoutes = require('./routes/game');
 
 const app = express();
 const server = http.createServer(app);
@@ -61,6 +62,7 @@ app.use('/api/listings', listingRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/game', gameRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {
