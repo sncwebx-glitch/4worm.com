@@ -1,0 +1,548 @@
+/* ── Slots Game Page ─────────────────────────────────────────────────────── */
+
+.slots-main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 30px;
+    align-items: start;
+}
+
+/* ── Memorial banner ─────────────────────────────────────────────────────── */
+.memorial-banner {
+    grid-column: 1 / -1;
+    background: linear-gradient(90deg, rgba(233,69,96,0.15) 0%, rgba(0,212,255,0.1) 100%);
+    border: 1px solid rgba(233,69,96,0.4);
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 0.9em;
+    color: #e94560;
+    letter-spacing: 1px;
+}
+
+/* ── Slot machine cabinet ─────────────────────────────────────────────────── */
+.slot-machine {
+    background: linear-gradient(180deg, #0d1b2a 0%, #1a1a2e 100%);
+    border: 3px solid #00d4ff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow:
+        0 0 30px rgba(0,212,255,0.2),
+        inset 0 0 40px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.machine-title {
+    font-size: 1.6em;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #00d4ff;
+    text-shadow: 0 0 15px rgba(0,212,255,0.7);
+    text-align: center;
+}
+
+/* ── Reels window ─────────────────────────────────────────────────────────── */
+.reels-window {
+    background: #050d14;
+    border: 4px solid #e94560;
+    border-radius: 10px;
+    padding: 12px;
+    position: relative;
+    width: 100%;
+    box-shadow:
+        0 0 20px rgba(233,69,96,0.3),
+        inset 0 0 20px rgba(0,0,0,0.6);
+}
+
+/* Winning line overlay */
+.reels-window::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    transform: translateY(-50%);
+    height: 88px;
+    border-top: 2px solid rgba(0,212,255,0.5);
+    border-bottom: 2px solid rgba(0,212,255,0.5);
+    background: rgba(0,212,255,0.04);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.reels-track {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+/* ── Single reel ─────────────────────────────────────────────────────────── */
+.reel {
+    width: 88px;
+    height: 264px; /* shows 3 cells of 88px each */
+    overflow: hidden;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,212,255,0.2);
+    position: relative;
+}
+
+.reel-strip {
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.12s linear;
+    will-change: transform;
+}
+
+.reel-cell {
+    width: 88px;
+    height: 88px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8em;
+    flex-shrink: 0;
+    user-select: none;
+}
+
+/* Glow on winning cell */
+.reel-cell.win-glow {
+    animation: cellWin 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes cellWin {
+    from { filter: drop-shadow(0 0 8px gold); }
+    to   { filter: drop-shadow(0 0 22px gold) brightness(1.3); }
+}
+
+/* Jackpot cell */
+.reel-cell.jackpot-glow {
+    animation: jackpotPulse 0.4s ease-in-out infinite alternate;
+}
+
+@keyframes jackpotPulse {
+    from { filter: drop-shadow(0 0 12px #00d4ff); }
+    to   { filter: drop-shadow(0 0 30px #00d4ff) brightness(1.5); }
+}
+
+/* ── Reel spinning class ─────────────────────────────────────────────────── */
+.reel.spinning .reel-strip {
+    transition: none;
+}
+
+/* ── Win display ─────────────────────────────────────────────────────────── */
+.win-display {
+    min-height: 52px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 10px;
+    transition: all 0.4s ease;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.05);
+    color: #999;
+    text-align: center;
+}
+
+.win-display.win-double {
+    background: rgba(0,212,255,0.1);
+    border-color: #00d4ff;
+    color: #00d4ff;
+    animation: winPop 0.4s ease;
+}
+
+.win-display.win-triple {
+    background: rgba(255,215,0,0.15);
+    border-color: gold;
+    color: gold;
+    animation: winPop 0.4s ease, winGlow 1s ease-in-out infinite alternate;
+}
+
+.win-display.win-jackpot {
+    background: rgba(0,212,255,0.2);
+    border-color: #00d4ff;
+    color: #00d4ff;
+    text-shadow: 0 0 10px #00d4ff;
+    animation: winPop 0.4s ease, jackpotFlash 0.5s ease-in-out infinite alternate;
+}
+
+.win-display.no-win {
+    background: rgba(233,69,96,0.07);
+    border-color: rgba(233,69,96,0.3);
+    color: #e94560;
+}
+
+@keyframes winPop {
+    0%   { transform: scale(0.9); opacity: 0; }
+    60%  { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes winGlow {
+    from { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+    to   { box-shadow: 0 0 30px rgba(255,215,0,0.7); }
+}
+
+@keyframes jackpotFlash {
+    from { box-shadow: 0 0 20px rgba(0,212,255,0.5); }
+    to   { box-shadow: 0 0 50px rgba(0,212,255,1); }
+}
+
+/* ── Spin button ─────────────────────────────────────────────────────────── */
+.spin-btn {
+    width: 100%;
+    padding: 18px;
+    font-size: 1.4em;
+    font-weight: 900;
+    letter-spacing: 4px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #e94560 0%, #c0392b 100%);
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    box-shadow: 0 6px 20px rgba(233,69,96,0.4);
+    transition: all 0.2s ease;
+}
+
+.spin-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #ff5e78 0%, #e94560 100%);
+    box-shadow: 0 8px 28px rgba(233,69,96,0.6);
+    transform: translateY(-2px);
+}
+
+.spin-btn:active:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 3px 10px rgba(233,69,96,0.3);
+}
+
+.spin-btn:disabled {
+    background: linear-gradient(135deg, #555 0%, #333 100%);
+    cursor: not-allowed;
+    box-shadow: none;
+    color: #888;
+}
+
+.spin-btn.spinning-state {
+    background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+    border: 2px solid #00d4ff;
+    color: #00d4ff;
+    animation: spinPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes spinPulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(0,212,255,0.3); }
+    50%       { box-shadow: 0 0 25px rgba(0,212,255,0.7); }
+}
+
+/* ── Paytable ─────────────────────────────────────────────────────────────── */
+.paytable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    color: #ccc;
+}
+
+.paytable th {
+    color: #00d4ff;
+    font-size: 0.8em;
+    letter-spacing: 1px;
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(0,212,255,0.2);
+}
+
+.paytable td {
+    padding: 6px 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.paytable .payout-amount {
+    color: gold;
+    font-weight: 700;
+    text-align: right;
+}
+
+/* ── Side panel ──────────────────────────────────────────────────────────── */
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.panel-card {
+    background: rgba(15,52,96,0.3);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.panel-card h3 {
+    color: #00d4ff;
+    font-size: 1em;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(0,212,255,0.2);
+}
+
+/* ── Jewel grid ──────────────────────────────────────────────────────────── */
+.jewel-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.jewel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(0,0,0,0.2);
+    font-size: 0.9em;
+}
+
+.jewel-row .jewel-label {
+    color: #ccc;
+}
+
+.jewel-row .jewel-count {
+    color: gold;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    min-width: 60px;
+    text-align: right;
+}
+
+.jewel-row.diamond-row  { border-left: 3px solid #00d4ff; }
+.jewel-row.ruby-row     { border-left: 3px solid #e94560; }
+.jewel-row.emerald-row  { border-left: 3px solid #2ecc71; }
+.jewel-row.sapphire-row { border-left: 3px solid #3498db; }
+.jewel-row.amethyst-row { border-left: 3px solid #9b59b6; }
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin-top: 6px;
+    font-weight: 700;
+}
+
+.total-row .total-label { color: #ecf0f1; }
+.total-row .total-jewels { color: #00d4ff; font-variant-numeric: tabular-nums; }
+.total-row .total-usd   { color: #2ecc71; font-size: 1.1em; }
+
+/* ── Payout countdown ─────────────────────────────────────────────────────── */
+.countdown-wrap {
+    text-align: center;
+    padding: 10px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(0,212,255,0.15);
+}
+
+.countdown-label {
+    font-size: 0.75em;
+    letter-spacing: 1px;
+    color: #888;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.countdown-timer {
+    font-size: 2em;
+    font-weight: 900;
+    letter-spacing: 4px;
+    font-variant-numeric: tabular-nums;
+    color: #00d4ff;
+    text-shadow: 0 0 10px rgba(0,212,255,0.5);
+}
+
+.countdown-timer.payout-ready {
+    color: #2ecc71;
+    text-shadow: 0 0 12px rgba(46,204,113,0.6);
+    animation: readyPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes readyPulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.7; }
+}
+
+/* ── Cashout section ─────────────────────────────────────────────────────── */
+.cashout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cashout-form input {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #ecf0f1;
+    font-size: 0.9em;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.cashout-form input:focus {
+    border-color: #00d4ff;
+    box-shadow: 0 0 8px rgba(0,212,255,0.2);
+}
+
+.cashout-form input::placeholder { color: #555; }
+
+.cashout-btn {
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    color: #fff;
+    font-size: 0.95em;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px rgba(46,204,113,0.3);
+}
+
+.cashout-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #3ee082 0%, #2ecc71 100%);
+    box-shadow: 0 6px 20px rgba(46,204,113,0.5);
+    transform: translateY(-1px);
+}
+
+.cashout-btn:disabled {
+    background: linear-gradient(135deg, #555 0%, #333 100%);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.cashout-hint {
+    font-size: 0.78em;
+    color: #666;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ── Status messages ─────────────────────────────────────────────────────── */
+.status-msg {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 0.85em;
+    text-align: center;
+    display: none;
+}
+
+.status-msg.show { display: block; }
+.status-msg.success {
+    background: rgba(46,204,113,0.15);
+    border: 1px solid rgba(46,204,113,0.4);
+    color: #2ecc71;
+}
+
+.status-msg.error {
+    background: rgba(233,69,96,0.15);
+    border: 1px solid rgba(233,69,96,0.4);
+    color: #e94560;
+}
+
+.status-msg.info {
+    background: rgba(0,212,255,0.1);
+    border: 1px solid rgba(0,212,255,0.3);
+    color: #00d4ff;
+}
+
+/* ── Connection badge ─────────────────────────────────────────────────────── */
+.conn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 1px;
+}
+
+.conn-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.conn-badge.connected { background: rgba(46,204,113,0.1); color: #2ecc71; }
+.conn-badge.connected .dot { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+
+.conn-badge.offline { background: rgba(233,69,96,0.1); color: #e94560; }
+.conn-badge.offline .dot { background: #e94560; }
+
+/* ── API config row ───────────────────────────────────────────────────────── */
+.api-config {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.api-config input {
+    flex: 1;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: #ecf0f1;
+    font-size: 0.8em;
+    outline: none;
+}
+
+.api-config button {
+    padding: 7px 12px;
+    background: rgba(0,212,255,0.15);
+    border: 1px solid rgba(0,212,255,0.3);
+    border-radius: 6px;
+    color: #00d4ff;
+    font-size: 0.8em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.api-config button:hover { background: rgba(0,212,255,0.25); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 800px) {
+    .slots-main {
+        grid-template-columns: 1fr;
+    }
+
+    .reel {
+        width: 74px;
+        height: 222px;
+    }
+
+    .reel-cell {
+        width: 74px;
+        height: 74px;
+        font-size: 2.2em;
+    }
+
+    .reels-window::before {
+        height: 74px;
+    }
+}

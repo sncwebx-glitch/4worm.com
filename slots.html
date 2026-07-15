@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💎 Jewel Slots — 4worm.com</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/slots.css">
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>🔒 4worm.com</h1>
+            <p class="tagline">Security Updates | White Hat Pen Testing | Vulnerability Disclosure</p>
+            <nav class="main-nav">
+                <a href="index.html">Forum</a>
+                <a href="blog.html">Blog</a>
+                <a href="slots.html" class="active">💎 Slots</a>
+                <a href="#rss">RSS Feeds</a>
+                <a href="#login">Login</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="slots-main">
+
+        <!-- Memorial banner -->
+        <div class="memorial-banner">
+            💜 In loving memory of Dewayne Bozeman — "Pops" — this one's for you.
+        </div>
+
+        <!-- ── Slot Machine ───────────────────────────────────────────────── -->
+        <section class="slot-machine">
+            <div class="machine-title">💎 JEWEL SLOTS 💎</div>
+
+            <!-- Reels window -->
+            <div class="reels-window">
+                <div class="reels-track">
+                    <!-- Reel 0 -->
+                    <div class="reel" id="reel0">
+                        <div class="reel-strip" id="strip0">
+                            <!-- Cells injected by slots.js -->
+                        </div>
+                    </div>
+                    <!-- Reel 1 -->
+                    <div class="reel" id="reel1">
+                        <div class="reel-strip" id="strip1"></div>
+                    </div>
+                    <!-- Reel 2 -->
+                    <div class="reel" id="reel2">
+                        <div class="reel-strip" id="strip2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Win message -->
+            <div class="win-display" id="winDisplay">Spin to win jewels!</div>
+
+            <!-- Spin button -->
+            <button class="spin-btn" id="spinBtn" onclick="spin()">SPIN</button>
+
+            <!-- Status message (rate limit / error) -->
+            <div class="status-msg" id="spinMsg"></div>
+
+            <!-- Paytable -->
+            <table class="paytable">
+                <thead>
+                    <tr>
+                        <th>COMBO</th>
+                        <th>SYMBOL</th>
+                        <th class="payout-amount">JEWELS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>💎 💎 💎</td>
+                        <td>Diamond Jackpot</td>
+                        <td class="payout-amount">100 – 250</td>
+                    </tr>
+                    <tr>
+                        <td>X X X</td>
+                        <td>Triple Match</td>
+                        <td class="payout-amount">30 – 80</td>
+                    </tr>
+                    <tr>
+                        <td>X X _</td>
+                        <td>Double Match</td>
+                        <td class="payout-amount">10 – 30</td>
+                    </tr>
+                    <tr>
+                        <td>_ _ _</td>
+                        <td>No Match</td>
+                        <td class="payout-amount">3 – 10</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- ── Side Panel ─────────────────────────────────────────────────── -->
+        <aside class="side-panel">
+
+            <!-- Connection status + API config -->
+            <div class="panel-card">
+                <h3>⚡ CONNECTION</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <span class="conn-badge offline" id="connBadge">
+                        <span class="dot"></span>LOCAL MODE
+                    </span>
+                </div>
+                <div class="api-config">
+                    <input type="text" id="apiBaseInput" placeholder="http://localhost:5000/api/game">
+                    <button onclick="saveApiBase()">Connect</button>
+                </div>
+                <p style="font-size:0.75em; color:#555; margin-top:8px;">
+                    Start the animal-marketplace backend to enable server-validated spins and real PayPal payouts.
+                </p>
+            </div>
+
+            <!-- Jewel balance -->
+            <div class="panel-card">
+                <h3>💰 JEWEL BALANCE</h3>
+                <div class="jewel-grid">
+                    <div class="jewel-row diamond-row">
+                        <span class="jewel-label">💎 Diamond</span>
+                        <span class="jewel-count" id="bal-diamond">0</span>
+                    </div>
+                    <div class="jewel-row ruby-row">
+                        <span class="jewel-label">🔴 Ruby</span>
+                        <span class="jewel-count" id="bal-ruby">0</span>
+                    </div>
+                    <div class="jewel-row emerald-row">
+                        <span class="jewel-label">💚 Emerald</span>
+                        <span class="jewel-count" id="bal-emerald">0</span>
+                    </div>
+                    <div class="jewel-row sapphire-row">
+                        <span class="jewel-label">🔷 Sapphire</span>
+                        <span class="jewel-count" id="bal-sapphire">0</span>
+                    </div>
+                    <div class="jewel-row amethyst-row">
+                        <span class="jewel-label">💜 Amethyst</span>
+                        <span class="jewel-count" id="bal-amethyst">0</span>
+                    </div>
+                </div>
+                <div class="total-row">
+                    <span class="total-label">Total</span>
+                    <span>
+                        <span class="total-jewels" id="total-jewels">0</span>
+                        <span style="color:#555; font-size:0.8em;"> jewels</span>
+                    </span>
+                </div>
+                <div class="total-row" style="border-top:none; padding-top:0;">
+                    <span class="total-label">Cash Value</span>
+                    <span class="total-usd" id="usd-value">$0.0000</span>
+                </div>
+                <p style="font-size:0.72em; color:#555; margin-top:6px; text-align:center;">
+                    10,000 jewels = $0.01 &nbsp;|&nbsp; 1,000,000 jewels = $1.00
+                </p>
+            </div>
+
+            <!-- 3-hour payout countdown -->
+            <div class="panel-card">
+                <h3>⏱ PAYPAL CONVERSION</h3>
+                <div class="countdown-wrap">
+                    <div class="countdown-label">Next conversion available in</div>
+                    <div class="countdown-timer payout-ready" id="countdown">READY NOW!</div>
+                </div>
+                <p style="font-size:0.78em; color:#666; text-align:center; margin-top:10px;">
+                    Jewels convert to real PayPal funds every <strong style="color:#00d4ff;">3 hours</strong>.
+                </p>
+            </div>
+
+            <!-- Cashout -->
+            <div class="panel-card">
+                <h3>💸 CASH OUT</h3>
+                <div class="cashout-form">
+                    <input
+                        type="email"
+                        id="paypalEmail"
+                        placeholder="your@paypal.com"
+                        autocomplete="email"
+                    >
+                    <input
+                        type="number"
+                        id="jewelsToRedeem"
+                        placeholder="Jewels to convert (min 10,000)"
+                        min="10000"
+                        step="1000"
+                    >
+                    <button class="cashout-btn" id="cashoutBtn" onclick="cashout()">
+                        CASH OUT VIA PAYPAL
+                    </button>
+                    <p class="cashout-hint">
+                        Minimum 10,000 jewels ($0.01) per cashout.<br>
+                        Requires backend connection + PayPal credentials.
+                    </p>
+                </div>
+                <div class="status-msg" id="cashoutMsg"></div>
+            </div>
+
+        </aside>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 4worm.com — All Rights Reserved | <a href="docs/SECURITY.md">Security Policy</a></p>
+    </footer>
+
+    <script src="js/slots.js"></script>
+</body>
+</html>

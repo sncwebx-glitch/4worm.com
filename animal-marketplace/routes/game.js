@@ -29,6 +29,15 @@ const gameLimit = rateLimit({
   message: { error: 'Too many requests. Please slow down.' }
 });
 
+// Spin endpoint: max 30 spins per minute per IP
+const spinLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Spinning too fast. Please wait a moment.' }
+});
+
 // Payout endpoint: max 5 attempts per 10 minutes per IP (prevents abuse)
 const payoutLimit = rateLimit({
   windowMs: 10 * 60 * 1000,
@@ -112,6 +121,33 @@ const REWARD_TABLE = {
   referral:   { type: 'amethyst', min: 100, max: 500 }
 };
 
+// ── Slot machine symbols (weighted) ──────────────────────────────────────────
+const SLOT_SYMBOLS = [
+  { emoji: '💎', name: 'diamond',  weight: 8  },
+  { emoji: '🔴', name: 'ruby',     weight: 18 },
+  { emoji: '💚', name: 'emerald',  weight: 22 },
+  { emoji: '🔷', name: 'sapphire', weight: 26 },
+  { emoji: '💜', name: 'amethyst', weight: 26 }
+];
+
+// Jewels awarded per slot outcome
+const SLOT_PAYOUTS = {
+  triple_diamond: { jewelType: 'diamond',  min: 100, max: 250 },
+  triple_match:   { jewelType: 'ruby',     min: 30,  max: 80  },
+  double_match:   { jewelType: 'emerald',  min: 10,  max: 30  },
+  no_match:       { jewelType: 'amethyst', min: 3,   max: 10  }
+};
+
+function weightedRandom(symbols) {
+  const total = symbols.reduce((sum, s) => sum + s.weight, 0);
+  let rand = Math.floor(Math.random() * total);
+  for (const sym of symbols) {
+    rand -= sym.weight;
+    if (rand < 0) return sym;
+  }
+  return symbols[symbols.length - 1];
+}
+
 function randomBetween(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -153,6 +189,60 @@ router.get('/status', isAuthenticated, async (req, res) => {
       stats:               game.stats,
       lastPayoutAt:        game.lastPayoutAt,
       payoutCooldownHours: 3
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/game/spin ───────────────────────────────────────────────────────
+// Spins the slot machine server-side. Returns reel symbols and jewels awarded.
+router.post('/spin', spinLimit, isAuthenticated, async (req, res) => {
+  try {
+    const userId = safeUserId(req.user._id);
+
+    // Draw 3 reels server-side (tamper-proof)
+    const reels = [
+      weightedRandom(SLOT_SYMBOLS),
+      weightedRandom(SLOT_SYMBOLS),
+      weightedRandom(SLOT_SYMBOLS)
+    ];
+
+    // Determine outcome
+    const names = reels.map(r => r.name);
+    let winType;
+    if (names[0] === names[1] && names[1] === names[2]) {
+      winType = names[0] === 'diamond' ? 'triple_diamond' : 'triple_match';
+    } else if (names[0] === names[1] || names[1] === names[2] || names[0] === names[2]) {
+      winType = 'double_match';
+    } else {
+      winType = 'no_match';
+    }
+
+    const payout = SLOT_PAYOUTS[winType];
+    const jewelsWon = randomBetween(payout.min, payout.max);
+
+    let game = await Game.findOne({ user: userId });
+    if (!game) game = new Game({ user: userId });
+
+    game.addJewels(payout.jewelType, jewelsWon, 'gameplay');
+    await game.save();
+
+    const cooldownSeconds = game.secondsUntilPayout;
+
+    res.json({
+      reels:              reels.map(r => ({ emoji: r.emoji, name: r.name })),
+      winType,
+      jewelsWon,
+      jewelType:          payout.jewelType,
+      isWin:              winType !== 'no_match',
+      isTriple:           winType.startsWith('triple'),
+      jewels:             game.jewels,
+      totalJewels:        game.totalJewels,
+      currentValueUsd:    game.currentValueUsd,
+      payoutReady:        cooldownSeconds === 0,
+      secondsUntilPayout: cooldownSeconds,
+      level:              game.stats.level
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
