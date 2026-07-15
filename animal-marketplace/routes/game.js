@@ -293,9 +293,11 @@ router.post('/set-paypal', isAuthenticated, async (req, res) => {
     }
 
     const userId = safeUserId(req.user._id);
+    // Cast to string explicitly to prevent any object-injection into the update
+    const safeEmail = String(paypalEmail).trim();
     const game = await Game.findOneAndUpdate(
       { user: userId },
-      { paypalEmail, updatedAt: new Date() },
+      { $set: { paypalEmail: safeEmail, updatedAt: new Date() } },
       { new: true, upsert: true }
     );
 

@@ -180,7 +180,7 @@ async function spin() {
   }, SPIN_DELAY_MS);
 }
 
-// ── Local (offline) spin logic ─────────────────────────────────────────────── 
+// ── Local (offline) spin logic ───────────────────────────────────────────────
 function localSpin() {
   const reels = [randomSymbol(), randomSymbol(), randomSymbol()];
   const names = reels.map(r => r.name);
