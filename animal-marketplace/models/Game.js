@@ -6,8 +6,8 @@ const JEWEL_TYPES = ['ruby', 'emerald', 'sapphire', 'diamond', 'amethyst'];
 // Payout cooldown: 3 hours in milliseconds
 const PAYOUT_COOLDOWN_MS = 3 * 60 * 60 * 1000;
 
-// Conversion rate: jewels → USD cents (configurable via env)
-// Default: 1000 jewels = $0.10 (10 cents)
+// Conversion rate: jewels per USD cent (configurable via env)
+// Default: 10000 jewels = $0.01 (1 cent), so 1,000,000 jewels = $1.00
 const JEWELS_PER_CENT = parseInt(process.env.JEWELS_PER_CENT || '10000', 10);
 
 const jewelLedgerEntry = new mongoose.Schema({
