@@ -3,10 +3,13 @@
 let currentCategory = 0;
 let currentThread = null;
 let forumData = null;
+const subscriptionStorageKey = 'forum-subscription-chain';
+let subscriptionChain = [];
 
 // Initialize forum on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadForumData();
+    loadSubscriptionChain();
     setupEventListeners();
     displayThreads(0);
 });
@@ -211,16 +214,28 @@ function addNewThread() {
 
 // Setup event listeners
 function setupEventListeners() {
+    const subscriptionForm = document.getElementById('subscriptionForm');
+    if (subscriptionForm) {
+        subscriptionForm.onsubmit = function(e) {
+            e.preventDefault();
+            addSubscriptionToChain();
+        };
+    }
+
     // Close modals when clicking outside
     window.onclick = function(event) {
         const newThreadModal = document.getElementById('newThreadModal');
         const threadDetailModal = document.getElementById('threadDetailModal');
+        const subscriptionModal = document.getElementById('subscriptionModal');
         
         if (event.target === newThreadModal) {
             newThreadModal.style.display = 'none';
         }
         if (event.target === threadDetailModal) {
             threadDetailModal.style.display = 'none';
+        }
+        if (event.target === subscriptionModal) {
+            subscriptionModal.style.display = 'none';
         }
     };
 }
@@ -235,4 +250,86 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function openSubscriptionModal() {
+    document.getElementById('subscriptionModal').style.display = 'block';
+}
+
+function closeSubscriptionModal() {
+    document.getElementById('subscriptionModal').style.display = 'none';
+}
+
+function loadSubscriptionChain() {
+    const storedChain = localStorage.getItem(subscriptionStorageKey);
+    if (storedChain) {
+        try {
+            subscriptionChain = JSON.parse(storedChain);
+        } catch (error) {
+            subscriptionChain = [];
+        }
+    }
+    renderSubscriptionChain();
+}
+
+function addSubscriptionToChain() {
+    const name = document.getElementById('subscriptionName').value.trim();
+    const email = document.getElementById('subscriptionEmail').value.trim().toLowerCase();
+    const bio = document.getElementById('subscriptionBio').value.trim();
+
+    if (!name || !email || !bio) {
+        alert('Please fill in all subscription fields');
+        return;
+    }
+
+    const duplicate = subscriptionChain.find(subscriber => subscriber.email === email);
+    if (duplicate) {
+        alert('This email is already subscribed to the forum chain.');
+        return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const previousHash = subscriptionChain.length ? subscriptionChain[subscriptionChain.length - 1].hash : 'GENESIS';
+    const hash = createChainHash(`${name}|${email}|${bio}|${timestamp}|${previousHash}`);
+
+    subscriptionChain.push({
+        id: subscriptionChain.length + 1,
+        name,
+        email,
+        bio,
+        timestamp,
+        previousHash,
+        hash
+    });
+
+    localStorage.setItem(subscriptionStorageKey, JSON.stringify(subscriptionChain));
+    renderSubscriptionChain();
+    closeSubscriptionModal();
+    document.getElementById('subscriptionForm').reset();
+    alert('Subscription added to forum chain.');
+}
+
+function createChainHash(value) {
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+        hash = ((hash << 5) - hash) + value.charCodeAt(i);
+        hash |= 0;
+    }
+    return `CH-${Math.abs(hash).toString(16)}`;
+}
+
+function renderSubscriptionChain() {
+    const summary = document.getElementById('subscriptionChainSummary');
+    if (!summary) return;
+
+    if (!subscriptionChain.length) {
+        summary.innerHTML = '<p style="color: #999; font-size: 0.9em;">No subscribers in chain yet.</p>';
+        return;
+    }
+
+    const latestSubscriber = subscriptionChain[subscriptionChain.length - 1];
+    summary.innerHTML = `
+        <p style="font-size: 0.9em; color: #ccc;">Subscribers in chain: <strong>${subscriptionChain.length}</strong></p>
+        <p style="font-size: 0.85em; color: #999;">Latest: ${escapeHtml(latestSubscriber.name)} (${escapeHtml(latestSubscriber.bio)})</p>
+    `;
 }
