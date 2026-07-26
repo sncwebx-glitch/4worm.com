@@ -216,9 +216,9 @@ function addNewThread() {
 function setupEventListeners() {
     const subscriptionForm = document.getElementById('subscriptionForm');
     if (subscriptionForm) {
-        subscriptionForm.onsubmit = function(e) {
+        subscriptionForm.onsubmit = async function(e) {
             e.preventDefault();
-            addSubscriptionToChain();
+            await addSubscriptionToChain();
         };
     }
 
@@ -272,17 +272,23 @@ function loadSubscriptionChain() {
     renderSubscriptionChain();
 }
 
-function addSubscriptionToChain() {
+async function addSubscriptionToChain() {
     const name = document.getElementById('subscriptionName').value.trim();
-    const email = document.getElementById('subscriptionEmail').value.trim().toLowerCase();
+    const rawEmail = document.getElementById('subscriptionEmail').value;
     const bio = document.getElementById('subscriptionBio').value.trim();
+    const normalizedEmail = normalizeEmail(rawEmail);
 
-    if (!name || !email || !bio) {
-        alert('Please fill in all subscription fields');
+    if (!name || !rawEmail.trim() || !bio) {
+        alert('Please fill in all required fields: name, email, and bio.');
         return;
     }
 
-    const duplicate = subscriptionChain.find(subscriber => subscriber.email === email);
+    if (!normalizedEmail) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    const duplicate = subscriptionChain.find(subscriber => subscriber.normalizedEmail === normalizedEmail);
     if (duplicate) {
         alert('This email is already subscribed to the forum chain.');
         return;
@@ -290,12 +296,13 @@ function addSubscriptionToChain() {
 
     const timestamp = new Date().toISOString();
     const previousHash = subscriptionChain.length ? subscriptionChain[subscriptionChain.length - 1].hash : 'GENESIS';
-    const hash = createChainHash(`${name}|${email}|${bio}|${timestamp}|${previousHash}`);
+    const hash = await createChainHash(`${name}|${normalizedEmail}|${bio}|${timestamp}|${previousHash}`);
 
     subscriptionChain.push({
-        id: subscriptionChain.length + 1,
+        id: generateSubscriptionId(),
         name,
-        email,
+        email: rawEmail.trim(),
+        normalizedEmail,
         bio,
         timestamp,
         previousHash,
@@ -309,13 +316,42 @@ function addSubscriptionToChain() {
     alert('Subscription added to forum chain.');
 }
 
-function createChainHash(value) {
+async function createChainHash(value) {
+    if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        const encoded = new TextEncoder().encode(value);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        return `CH-${hashHex}`;
+    }
+
     let hash = 0;
     for (let i = 0; i < value.length; i++) {
         hash = ((hash << 5) - hash) + value.charCodeAt(i);
         hash |= 0;
     }
     return `CH-${Math.abs(hash).toString(16)}`;
+}
+
+function normalizeEmail(email) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailMatch = trimmedEmail.match(/^([^@\s]+)@([^@\s]+\.[^@\s]+)$/);
+    if (!emailMatch) return null;
+
+    let [, localPart, domain] = emailMatch;
+    if (domain === 'googlemail.com') domain = 'gmail.com';
+    if (domain === 'gmail.com') {
+        localPart = localPart.split('+')[0].replace(/\./g, '');
+    }
+
+    return `${localPart}@${domain}`;
+}
+
+function generateSubscriptionId() {
+    if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+    return `sub-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function renderSubscriptionChain() {
