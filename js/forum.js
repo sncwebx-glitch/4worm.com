@@ -3,10 +3,13 @@
 let currentCategory = 0;
 let currentThread = null;
 let forumData = null;
+const subscriptionStorageKey = 'forum-subscription-chain';
+let subscriptionChain = [];
 
 // Initialize forum on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadForumData();
+    loadSubscriptionChain();
     setupEventListeners();
     displayThreads(0);
 });
@@ -211,16 +214,28 @@ function addNewThread() {
 
 // Setup event listeners
 function setupEventListeners() {
+    const subscriptionForm = document.getElementById('subscriptionForm');
+    if (subscriptionForm) {
+        subscriptionForm.onsubmit = async function(e) {
+            e.preventDefault();
+            await addSubscriptionToChain();
+        };
+    }
+
     // Close modals when clicking outside
     window.onclick = function(event) {
         const newThreadModal = document.getElementById('newThreadModal');
         const threadDetailModal = document.getElementById('threadDetailModal');
+        const subscriptionModal = document.getElementById('subscriptionModal');
         
         if (event.target === newThreadModal) {
             newThreadModal.style.display = 'none';
         }
         if (event.target === threadDetailModal) {
             threadDetailModal.style.display = 'none';
+        }
+        if (event.target === subscriptionModal) {
+            subscriptionModal.style.display = 'none';
         }
     };
 }
@@ -235,4 +250,147 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+function openSubscriptionModal() {
+    document.getElementById('subscriptionModal').style.display = 'block';
+}
+
+function closeSubscriptionModal() {
+    document.getElementById('subscriptionModal').style.display = 'none';
+}
+
+function loadSubscriptionChain() {
+    const storedChain = localStorage.getItem(subscriptionStorageKey);
+    if (storedChain) {
+        try {
+            subscriptionChain = JSON.parse(storedChain);
+        } catch (error) {
+            subscriptionChain = [];
+        }
+    }
+    renderSubscriptionChain();
+}
+
+async function addSubscriptionToChain() {
+    const name = document.getElementById('subscriptionName').value.trim();
+    const emailInput = document.getElementById('subscriptionEmail');
+    const email = emailInput.value.trim();
+    const bio = document.getElementById('subscriptionBio').value.trim();
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!name || !email || !bio) {
+        alert('Please fill in all required fields: name, email, and bio.');
+        return;
+    }
+
+    if (!emailInput.checkValidity() || !normalizedEmail) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+
+    const duplicate = subscriptionChain.find(subscriber => subscriber.normalizedEmail === normalizedEmail);
+    if (duplicate) {
+        alert('This email is already subscribed to the forum chain.');
+        return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const previousHash = subscriptionChain.length ? subscriptionChain[subscriptionChain.length - 1].hash : 'GENESIS';
+    const hash = await createChainHash(`${name}|${normalizedEmail}|${bio}|${timestamp}|${previousHash}`);
+
+    subscriptionChain.push({
+        id: generateSubscriptionId(),
+        name,
+        email: email.trim(),
+        normalizedEmail,
+        bio,
+        timestamp,
+        previousHash,
+        hash
+    });
+
+    localStorage.setItem(subscriptionStorageKey, JSON.stringify(subscriptionChain));
+    renderSubscriptionChain();
+    closeSubscriptionModal();
+    document.getElementById('subscriptionForm').reset();
+    alert('Subscription added to forum chain.');
+}
+
+async function createChainHash(value) {
+    if (window.crypto && window.crypto.subtle && window.TextEncoder) {
+        const encoded = new TextEncoder().encode(value);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', encoded);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
+        return `CH-${hashHex}`;
+    }
+
+    let hash = 0;
+    for (let i = 0; i < value.length; i++) {
+        hash = ((hash << 5) - hash) + value.charCodeAt(i);
+        hash |= 0;
+    }
+    return `CH-${Math.abs(hash).toString(16)}`;
+}
+
+function normalizeEmail(email) {
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailParts = trimmedEmail.split('@');
+    if (emailParts.length !== 2) return null;
+
+    let localPart = emailParts[0];
+    let domain = emailParts[1];
+    const hasValidLocalPart = Boolean(localPart);
+    const hasValidDomainFormat = isValidEmailDomain(domain);
+    if (!hasValidLocalPart || !hasValidDomainFormat) {
+        return null;
+    }
+
+    // Googlemail.com addresses are aliases for gmail.com and follow the same dot/plus behavior.
+    if (domain === 'googlemail.com' || domain === 'gmail.com') {
+        domain = 'gmail.com';
+        localPart = localPart.split('+')[0].replace(/\./g, '');
+    }
+
+    return `${localPart}@${domain}`;
+}
+
+function isValidEmailDomain(domain) {
+    return Boolean(
+        domain &&
+        !domain.startsWith('.') &&
+        !domain.endsWith('.') &&
+        domain.includes('.') &&
+        !domain.includes('..')
+    );
+}
+
+function generateSubscriptionId() {
+    if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+    if (window.crypto && window.crypto.getRandomValues) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        const token = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+        return `sub-${token}`;
+    }
+    return `sub-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function renderSubscriptionChain() {
+    const summary = document.getElementById('subscriptionChainSummary');
+    if (!summary) return;
+
+    if (!subscriptionChain.length) {
+        summary.innerHTML = '<p class="subscription-chain-empty">No subscribers in chain yet.</p>';
+        return;
+    }
+
+    const latestSubscriber = subscriptionChain[subscriptionChain.length - 1];
+    summary.innerHTML = `
+        <p class="subscription-chain-count">Subscribers in chain: <strong>${subscriptionChain.length}</strong></p>
+        <p class="subscription-chain-latest">Latest: ${escapeHtml(latestSubscriber.name)} (${escapeHtml(latestSubscriber.bio)})</p>
+    `;
 }

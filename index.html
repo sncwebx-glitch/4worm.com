@@ -40,6 +40,8 @@
                     <li><a href="rss/forum-feed.xml" target="_blank">📡 Forum RSS</a></li>
                     <li><a href="rss/blog-feed.xml" target="_blank">📡 Blog RSS</a></li>
                 </ul>
+                <button class="btn-primary mt-20" onclick="openSubscriptionModal()">+ Join Forum Chain</button>
+                <div id="subscriptionChainSummary" class="mt-20"></div>
             </section>
         </aside>
 
@@ -78,6 +80,19 @@
                 <textarea placeholder="Write your reply..." id="replyContent" rows="4" required></textarea>
                 <input type="text" id="replyAuthor" placeholder="Your Name" required>
                 <button type="submit" class="btn-primary">Post Reply</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="subscriptionModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeSubscriptionModal()">&times;</span>
+            <h2>Forum Subscription Chain</h2>
+            <form id="subscriptionForm">
+                <input type="text" id="subscriptionName" placeholder="Display Name" required>
+                <input type="email" id="subscriptionEmail" placeholder="Email Address" required>
+                <textarea id="subscriptionBio" placeholder="Short Bio" rows="4" required></textarea>
+                <button type="submit" class="btn-primary">Add to Chain</button>
             </form>
         </div>
     </div>

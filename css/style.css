@@ -353,3 +353,18 @@ footer a:hover {
 .mb-20 {
     margin-bottom: 20px;
 }
+
+.subscription-chain-empty {
+    color: #999;
+    font-size: 0.9em;
+}
+
+.subscription-chain-count {
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.subscription-chain-latest {
+    font-size: 0.85em;
+    color: #999;
+}
