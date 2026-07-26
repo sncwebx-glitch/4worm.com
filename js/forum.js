@@ -274,16 +274,17 @@ function loadSubscriptionChain() {
 
 async function addSubscriptionToChain() {
     const name = document.getElementById('subscriptionName').value.trim();
-    const rawEmail = document.getElementById('subscriptionEmail').value;
+    const emailInput = document.getElementById('subscriptionEmail');
+    const email = emailInput.value.trim();
     const bio = document.getElementById('subscriptionBio').value.trim();
-    const normalizedEmail = normalizeEmail(rawEmail);
+    const normalizedEmail = normalizeEmail(email);
 
-    if (!name || !rawEmail.trim() || !bio) {
+    if (!name || !email || !bio) {
         alert('Please fill in all required fields: name, email, and bio.');
         return;
     }
 
-    if (!normalizedEmail) {
+    if (!emailInput.checkValidity() || !normalizedEmail) {
         alert('Please enter a valid email address.');
         return;
     }
@@ -301,7 +302,7 @@ async function addSubscriptionToChain() {
     subscriptionChain.push({
         id: generateSubscriptionId(),
         name,
-        email: rawEmail.trim(),
+        email: email.trim(),
         normalizedEmail,
         bio,
         timestamp,
@@ -335,21 +336,45 @@ async function createChainHash(value) {
 
 function normalizeEmail(email) {
     const trimmedEmail = email.trim().toLowerCase();
-    const emailMatch = trimmedEmail.match(/^([^@\s]+)@([^@\s]+\.[^@\s]+)$/);
-    if (!emailMatch) return null;
+    const emailParts = trimmedEmail.split('@');
+    if (emailParts.length !== 2) return null;
 
-    let [, localPart, domain] = emailMatch;
-    if (domain === 'googlemail.com') domain = 'gmail.com';
-    if (domain === 'gmail.com') {
+    let localPart = emailParts[0];
+    let domain = emailParts[1];
+    const hasValidLocalPart = Boolean(localPart);
+    const hasValidDomainFormat = isValidEmailDomain(domain);
+    if (!hasValidLocalPart || !hasValidDomainFormat) {
+        return null;
+    }
+
+    // Googlemail.com addresses are aliases for gmail.com and follow the same dot/plus behavior.
+    if (domain === 'googlemail.com' || domain === 'gmail.com') {
+        domain = 'gmail.com';
         localPart = localPart.split('+')[0].replace(/\./g, '');
     }
 
     return `${localPart}@${domain}`;
 }
 
+function isValidEmailDomain(domain) {
+    return Boolean(
+        domain &&
+        !domain.startsWith('.') &&
+        !domain.endsWith('.') &&
+        domain.includes('.') &&
+        !domain.includes('..')
+    );
+}
+
 function generateSubscriptionId() {
     if (window.crypto && window.crypto.randomUUID) {
         return window.crypto.randomUUID();
+    }
+    if (window.crypto && window.crypto.getRandomValues) {
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        const token = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+        return `sub-${token}`;
     }
     return `sub-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
@@ -359,13 +384,13 @@ function renderSubscriptionChain() {
     if (!summary) return;
 
     if (!subscriptionChain.length) {
-        summary.innerHTML = '<p style="color: #999; font-size: 0.9em;">No subscribers in chain yet.</p>';
+        summary.innerHTML = '<p class="subscription-chain-empty">No subscribers in chain yet.</p>';
         return;
     }
 
     const latestSubscriber = subscriptionChain[subscriptionChain.length - 1];
     summary.innerHTML = `
-        <p style="font-size: 0.9em; color: #ccc;">Subscribers in chain: <strong>${subscriptionChain.length}</strong></p>
-        <p style="font-size: 0.85em; color: #999;">Latest: ${escapeHtml(latestSubscriber.name)} (${escapeHtml(latestSubscriber.bio)})</p>
+        <p class="subscription-chain-count">Subscribers in chain: <strong>${subscriptionChain.length}</strong></p>
+        <p class="subscription-chain-latest">Latest: ${escapeHtml(latestSubscriber.name)} (${escapeHtml(latestSubscriber.bio)})</p>
     `;
 }
