@@ -133,5 +133,6 @@ Edit `data/blog-data.json` and add to the `articles` array:
 
 - Read [API Documentation](API.md) for backend integration
 - Review [Security Guidelines](SECURITY.md) before production deployment
+- See [Tor Hidden Service Guide](TOR_HIDDEN_SERVICE.md) to publish the site as a `.onion` address
 - Consider adding user authentication
 - Implement database storage
