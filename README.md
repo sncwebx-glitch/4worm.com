@@ -36,7 +36,8 @@ A comprehensive forum board system for security updates, white hat penetration t
 └── docs/
     ├── SETUP.md              # Installation guide
     ├── API.md                # API documentation
-    └── SECURITY.md           # Security guidelines
+    ├── SECURITY.md           # Security guidelines
+    └── TOR_HIDDEN_SERVICE.md # Tor hidden-service (.onion) setup guide
 ```
 
 ## Quick Start
