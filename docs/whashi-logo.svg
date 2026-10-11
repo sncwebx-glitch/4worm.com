@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="600" height="600">
+  <title>Whashi logo</title>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5f5f5"/><stop offset="1" stop-color="#9a9a9a"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="600" fill="#0d0d0f"/>
+  <circle cx="300" cy="270" r="215" fill="none" stroke="#3a3a3e" stroke-width="3"/>
+  <!-- periodic table element tile -->
+  <g>
+    <rect x="395" y="95" width="110" height="110" rx="8" fill="#17171a" stroke="url(#g)" stroke-width="4"/>
+    <text x="405" y="120" font-family="Arial,sans-serif" font-size="16" fill="#cfcfcf">74</text>
+    <text x="450" y="172" text-anchor="middle" font-family="Arial,sans-serif" font-size="52" font-weight="bold" fill="url(#g)">Wh</text>
+    <text x="450" y="195" text-anchor="middle" font-family="Arial,sans-serif" font-size="12" fill="#cfcfcf">Whashi</text>
+  </g>
+  <!-- syringe, rotated, open (plunger pulled out, cap off) -->
+  <g transform="rotate(-45 300 270)" stroke="url(#g)" stroke-width="5" fill="none" stroke-linejoin="round">
+    <rect x="215" y="235" width="170" height="60" rx="6" fill="#17171a"/>
+    <g stroke-width="2" stroke="#bdbdbd">
+      <path d="M245 235v14M270 235v22M295 235v14M320 235v22M345 235v14"/>
+    </g>
+    <path d="M215 250h-25v30h25" />
+    <path d="M190 265H110" stroke-width="8"/>
+    <path d="M110 245v40" stroke-width="8"/>
+    <path d="M385 255h20v20h-20"/>
+    <path d="M405 265h60" stroke-width="3"/>
+    <path d="M465 265l55 0" stroke-width="2"/>
+    <path d="M215 265h-60" stroke-width="2" opacity="0"/>
+    <path d="M385 235v60" stroke-width="8"/>
+  </g>
+  <!-- DNA helix flowing from needle -->
+  <g fill="none" stroke="url(#g)" stroke-width="4" stroke-linecap="round">
+    <path d="M360 330 C400 350 340 390 380 410 S 420 450 400 470"/>
+    <path d="M400 330 C360 350 420 390 380 410 S 340 450 400 470" />
+    <g stroke-width="2" stroke="#bdbdbd">
+      <path d="M368 340h22M372 372h18M380 410h0M372 448h22M388 395h-10"/>
+    </g>
+  </g>
+  <!-- DNA symbols -->
+  <g font-family="Arial,sans-serif" font-size="26" font-weight="bold" fill="#e8e8e8">
+    <text x="440" y="360">A</text><text x="470" y="400">T</text>
+    <text x="440" y="440">G</text><text x="470" y="480">C</text>
+  </g>
+  <text x="300" y="560" text-anchor="middle" font-family="Arial,sans-serif" font-size="64" font-weight="bold" letter-spacing="14" fill="url(#g)">WHASHI</text>
+</svg>
