@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4worm Arcade - Play-Money Games</title>
+<style>
+body{font-family:sans-serif;background:#111;color:#eee;max-width:720px;margin:0 auto;padding:1rem}
+button{padding:.5rem 1rem;margin:.2rem;border:0;border-radius:4px;background:#2a7;color:#fff;cursor:pointer}
+button:disabled{background:#555}
+section{background:#1c1c1c;padding:1rem;margin:1rem 0;border-radius:8px}
+canvas{background:#000;width:100%;max-width:400px;display:block}
+.reels{font-size:3rem;letter-spacing:.5rem}
+.note{font-size:.8rem;color:#aaa}
+</style>
+</head>
+<body>
+<h1>🎰 4worm Arcade</h1>
+<p class="note">Play-money only. Coins have no cash value and cannot be withdrawn or sold. For entertainment.</p>
+<section>
+<h2>🪙 <span id="coins">0</span> coins &nbsp; 🔥 Streak: <span id="streak">0</span> &nbsp; 🏅 <span id="badges">none</span></h2>
+<button id="bonus">Claim hourly bonus</button> <span id="bonusInfo" class="note"></span>
+<p><button id="invite">Copy invite link</button> <span id="inviteInfo" class="note"></span></p>
+</section>
+<section>
+<h2>Slots (bet 10)</h2>
+<div class="reels" id="reels">🍒🍋🔔</div>
+<button id="spin">Spin</button> <span id="slotMsg"></span>
+</section>
+<section>
+<h2>Plinko (bet 10)</h2>
+<canvas id="plinko" width="400" height="360"></canvas>
+<button id="drop">Drop ball</button> <span id="plinkoMsg"></span>
+</section>
+<section>
+<h2>Hourly challenge</h2>
+<p id="q"></p>
+<input id="ans" type="number"> <button id="submit">Answer</button> <span id="chMsg"></span>
+</section>
+<section>
+<h2>Leaderboard (this device)</h2>
+<ol id="board"></ol>
+<button id="reset">Reset game</button>
+</section>
+<script>
+(function(){
+'use strict';
+var KEY='4worm_arcade',HOUR=3600000,BET=10;
+var s=load();
+function load(){try{var d=JSON.parse(localStorage.getItem(KEY));if(d&&typeof d.coins==='number')return d}catch(e){}
+return {coins:100,streak:0,lastBonus:0,lastDay:'',best:100,challenge:'',badges:[]}}
+function save(){s.best=Math.max(s.best,s.coins);localStorage.setItem(KEY,JSON.stringify(s));render()}
+function $(i){return document.getElementById(i)}
+function rnd(n){var a=new Uint32Array(1);crypto.getRandomValues(a);return a[0]%n}
+function day(){return new Date().toISOString().slice(0,10)}
+function render(){
+$('coins').textContent=s.coins;$('streak').textContent=s.streak;
+$('badges').textContent=s.badges.length?s.badges.join(' '):'none';
+var wait=s.lastBonus+HOUR-Date.now();
+$('bonus').disabled=wait>0;
+$('bonusInfo').textContent=wait>0?'Next in '+Math.ceil(wait/60000)+' min':'Ready!';
+$('spin').disabled=$('drop').disabled=s.coins<BET;
+var top=JSON.parse(localStorage.getItem(KEY+'_board')||'[]');
+top.push({n:'You',v:s.best});top.sort(function(a,b){return b.v-a.v});
+$('board').innerHTML='';top.slice(0,5).forEach(function(r){var li=document.createElement('li');li.textContent=r.n+': '+r.v;$('board').appendChild(li)});
+}
+$('bonus').onclick=function(){
+if(Date.now()<s.lastBonus+HOUR)return;
+var t=day();
+if(s.lastDay!==t){var y=new Date(Date.now()-864e5).toISOString().slice(0,10);s.streak=s.lastDay===y?s.streak+1:1;s.lastDay=t}
+s.coins+=25+Math.min(s.streak,7)*5;s.lastBonus=Date.now();
+if(s.streak>=7&&s.badges.indexOf('🔥')<0)s.badges.push('🔥');
+save()};
+$('invite').onclick=function(){var u=location.href.split('?')[0]+'?ref=friend';
+(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){$('inviteInfo').textContent='Copied!'},function(){$('inviteInfo').textContent=u})};
+var sym=['🍒','🍋','🔔','⭐','7️⃣'];
+$('spin').onclick=function(){
+if(s.coins<BET)return;s.coins-=BET;
+var r=[sym[rnd(5)],sym[rnd(5)],sym[rnd(5)]];$('reels').textContent=r.join('');
+var w=0;if(r[0]===r[1]&&r[1]===r[2])w=BET*10;else if(r[0]===r[1]||r[1]===r[2]||r[0]===r[2])w=BET*2;
+s.coins+=w;$('slotMsg').textContent=w?'Won '+w+'!':'No luck';save()};
+var mult=[5,2,1,0.5,0.2,0.5,1,2,5],cv=$('plinko'),cx=cv.getContext('2d');
+function board(x,y){cx.clearRect(0,0,400,360);cx.fillStyle='#888';
+for(var r=0;r<8;r++)for(var c=0;c<=r+1;c++){cx.beginPath();cx.arc(200+(c-(r+1)/2)*40,40+r*32,3,0,7);cx.fill()}
+cx.fillStyle='#fc3';cx.font='14px sans-serif';mult.forEach(function(m,i){cx.fillText('x'+m,i*44+10,350)});
+if(y!==undefined){cx.beginPath();cx.arc(x,y,7,0,7);cx.fill()}}
+board();var busy=false;
+$('drop').onclick=function(){
+if(busy||s.coins<BET)return;busy=true;s.coins-=BET;save();
+var row=0,pos=0;
+(function step(){
+if(row<8){pos+=rnd(2);row++;board(200+(pos-row/2)*40,40+row*32);setTimeout(step,150)}
+else{var slot=Math.round(pos*8/8);var w=Math.floor(BET*mult[slot]);s.coins+=w;
+$('plinkoMsg').textContent='Slot x'+mult[slot]+' → '+w;busy=false;save()}})()};
+var a,b,ans;
+function newQ(){a=rnd(20)+5;b=rnd(20)+5;ans=a+b;var h=Date.now()/HOUR|0;
+if(s.challenge===String(h)){$('q').textContent='Done for this hour. Come back later!';$('submit').disabled=true}
+else{$('q').textContent='What is '+a+' + '+b+'?';$('submit').disabled=false}}
+$('submit').onclick=function(){
+if(+$('ans').value===ans){s.challenge=String(Date.now()/HOUR|0);s.coins+=50;
+if(s.badges.indexOf('🧠')<0)s.badges.push('🧠');$('chMsg').textContent='Correct! +50 coins';save();newQ()}
+else $('chMsg').textContent='Try again'};
+$('reset').onclick=function(){localStorage.removeItem(KEY);s=load();save();newQ()};
+newQ();save();setInterval(render,30000);
+})();
+</script>
+</body>
+</html>
